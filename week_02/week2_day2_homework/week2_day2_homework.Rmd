@@ -1,0 +1,198 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+1 MVP
+1.1 Local PostgreSQL connections
+```{r}
+library(keyring)
+library(RPostgreSQL)
+
+
+username <- key_get(service = "postgresql_username", keyring = "local")
+password <- key_get(service = "postgresql_password", keyring = "local")
+keyring_lock(keyring = "local")
+
+
+my_db_connection <- dbConnect(drv = PostgreSQL(max.con = 1), user = username, password = password, dbname = 'wrestling', host='localhost')
+rm(username)
+rm(password)
+```
+
+```{r}
+
+dbListTables(conn = my_db_connection)
+dbListFields(conn = my_db_connection, name = "wrestlers")
+
+
+```
+
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers")
+```
+
+
+id = integer
+born = character
+name = character
+gender = character
+win_percent = double
+total matches = integer
+
+
+
+
+
+
+2 Extensions
+
+Return all the details for any wrestlers from the United Kingdom
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers
+           WHERE born = 'United Kingdom'")
+```
+
+Get the names of all Japanese wrestlers who have appeared in 40 or more matches
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers
+           WHERE total_matches >= 40 AND born = 'Japan'")
+```
+
+
+Find the wrestlers who have won between 50% and 60% of their matches.
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers
+           WHERE win_percent BETWEEN 50 AND 60")
+```
+
+Find all the wrestlers with names beginning with ‘X’
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers
+           WHERE name LIKE 'X%'")
+```
+
+
+Find all the wrestlers who were born in countries beginning with the letter ‘I’. Try this using IN (there are 9 countries) and using a wildcard comparison.
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers
+           WHERE born LIKE 'I%'")
+```
+
+
+
+
+
+
+
+Find all the wrestlers who were not born in countries beginning with the letter ‘I’
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM wrestlers
+           WHERE born NOT LIKE 'I%'")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+dbDisconnect(my_db_connection)
+```
+
+
+1.2 Remote PostgreSQL connections
+```{r}
+#keyring_create(keyring = "remote")
+key_set(service = "wrestling_postgresql_username", keyring = "remote")
+
+key_set(service = "wrestling_postgresql_password", keyring = "remote")
+
+keyring_lock(keyring = "remote")
+```
+
+
+```{r}
+```
+
+
+
+
+
+
+
+```{r}
+username <- key_get(service = "wrestling_postgresql_username", keyring = "remote")
+password <- key_get(service = "wrestling_postgresql_password", keyring = "remote")
+keyring_lock(keyring = "remote")
+
+db_connect <- dbConnect(drv = PostgreSQL(max.con = 1), user = username, password = password, dbname = 'mvhbdgdk', host = '34.245.37.126')
+```
+
+
+```{r}
+dbDisconnect(my_db_connection)
+```
+
+
+```{r}
+library(keyring)
+keyring_create(remote)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
