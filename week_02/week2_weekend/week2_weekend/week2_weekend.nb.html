@@ -1902,9 +1902,20 @@ rm(password)</code></pre>
            ORDER BY e.id DESC
            GROUP BY team_name&quot;)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gcG9zdGdyZXNxbFF1aWNrU1FMKGNvbm4sIHN0YXRlbWVudCwgLi4uKSA6IFxuICBleHBpcmVkIFBvc3RncmVTUUxDb25uZWN0aW9uXG4ifQ== -->
-<pre><code>Error in postgresqlQuickSQL(conn, statement, ...) : 
-  expired PostgreSQLConnection</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gcG9zdGdyZXNxbEV4ZWNTdGF0ZW1lbnQoY29ubiwgc3RhdGVtZW50LCAuLi4pIDogXG4gIFJTLURCSSBkcml2ZXI6IChjb3VsZCBub3QgUmV0cmlldmUgdGhlIHJlc3VsdCA6IEVSUk9SOiAgc3ludGF4IGVycm9yIGF0IG9yIG5lYXIgXCJHUk9VUFwiXG5MSU5FIDU6ICAgICAgICAgICAgR1JPVVAgQlkgdGVhbV9uYW1lXG4gICAgICAgICAgICAgICAgICAgXlxuKVxuQ291bGQgbm90IGNyZWF0ZSBleGVjdXRlOiBTRUxFQ1QgQ09VTlQoZS5pZCkgQVMgbnVtX2VtcGxveWVlcywgdC5uYW1lIEFTIHRlYW1fbmFtZVxuICAgICAgICAgICBGUk9NIGVtcGxveWVlcyBBUyBlIElOTkVSIEpPSU4gdGVhbXMgQVMgdFxuICAgICAgICAgICBPTiBlLnRlYW1faWQgPSB0LmlkXG4gICAgICAgICAgIE9SREVSIEJZIGUuaWQgREVTQ1xuICAgICAgICAgICBHUk9VUCBCWSB0ZWFtX25hbWVcbiJ9 -->
+<pre><code>Error in postgresqlExecStatement(conn, statement, ...) : 
+  RS-DBI driver: (could not Retrieve the result : ERROR:  syntax error at or near &quot;GROUP&quot;
+LINE 5:            GROUP BY team_name
+                   ^
+)
+Could not create execute: SELECT COUNT(e.id) AS num_employees, t.name AS team_name
+           FROM employees AS e INNER JOIN teams AS t
+           ON e.team_id = t.id
+           ORDER BY e.id DESC
+           GROUP BY team_name</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTlVMTFxuIn0= -->
+<pre><code>NULL</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
