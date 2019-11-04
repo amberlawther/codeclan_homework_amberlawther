@@ -1,0 +1,168 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(RPostgreSQL)
+library(keyring)
+
+```
+
+```{r}
+keyring_unlock(keyring = "local")
+```
+
+```{r}
+username <- key_get(service = "postgresql_username", keyring = "local")
+password <- key_get(service = "postgresql_password", keyring = "local")
+keyring_lock(keyring = "local")
+
+```
+
+```{r}
+my_db_connection <- dbConnect(drv = PostgreSQL(max.con = 1), user = username, password = password, dbname="acme_employees", host="localhost")
+rm(username)
+rm(password)
+```
+
+
+```{r}
+dbListTables(conn = my_db_connection)
+```
+
+```{r}
+dbListFields(conn = my_db_connection, name = "employees")
+```
+```{r}
+dbListFields(conn = my_db_connection, name = "teams")
+```
+
+```{r}
+dbListFields(conn = my_db_connection, name = "feedbacks")
+```
+
+
+
+
+Create a new data.frame containing the details of all employees held in the database
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT * FROM employees")
+```
+
+
+Retrieve the records for all employees again, but this time add a field full_name containing the first_name and last_name of each employee separated by a space.
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT id, first_name, last_name, 
+           CONCAT(first_name, ' ', last_name) AS full_name
+           FROM employees")
+```
+
+
+Retrieve the details of all employees again, but this time listing their team name (as team_name), rather than their team_id.
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT e.id, e.first_name, e.last_name, e.email, t.name AS team_name FROM employees AS e
+           INNER JOIN teams AS t ON e.team_id = t.id")
+```
+
+
+Do a breakdown of the number of employees per team (here we want two columns: team_name and num_employees). Order the table in decreasing number of employees. Include all teams, even if they have no employees.
+
+```{r}
+dbGetQuery(my_db_connection,
+           "SELECT COUNT(e.id) AS num_employees, t.name AS team_name
+           FROM employees AS e INNER JOIN teams AS t
+           ON e.team_id = t.id
+           ORDER BY e.id DESC
+           GROUP BY team_name")
+```
+
+
+
+
+
+
+
+
+
+```{r}
+dbDisconnect(my_db_connection)
+```
+
+
+
+APIs
+
+
+```{r}
+library(httr)
+library(jsonlite)
+library(purrr)
+library(keyring)
+```
+
+```{r}
+keyring_unlock("remote_api2")
+key_set("indico_api_key")
+keyring_lock("remote_api2")
+```
+
+```{r}
+keyring_unlock("remote_api2")
+key_get("indico_api_key")
+keyring_lock("remote_api2")
+```
+
+
+
+
+
+Write a get_emotions_from_indico_api() function that takes in api_key, url and message, POSTs the message to the Indico emotions endpoint, and returns the content(response). Try your function out one-by-one on the following two trial messages, and investigate the structure of the response contents:
+
+messages <- c("I really like working here, great place, decent perks", "Hmm, not so sure I'll stay: long working hours and low pay, bad morale")
+
+```{r}
+get_emotions_from_indico_api <- function(emotions) {
+  query_params <- list(ApiKey = indico_api_key, data = "I really like working here, great place, decent perks!")
+                             response <- GET("https://apiv2.indico.io/sentiment", query = query_params)
+                             content(response)
+        
+}
+```
+
+
+```{r}
+get_emotions_from_indico_api2 <- function(emotions) {
+  query_params <- list(ApiKey = indico_api_key, data = "I really like working here, great place, decent perks!")
+                             response <- GET("https://apiv2.indico.io/emotion", query = query_params)
+                             content(response)
+}
+```
+
+
+
+
+
+
+
+
+
+```{r}
+GET("https://apiv2.indico.io/emotion")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
