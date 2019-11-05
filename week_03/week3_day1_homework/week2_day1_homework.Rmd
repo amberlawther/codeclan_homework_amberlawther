@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+MVP
+
+Question 1
+
+Load in the dataset and call it drinks_content, eyeball it by printing it out (first 5 rows, last 5 rows, and then all of the data) and find out the dimensions (number of rows/columns) and variable names.
+
+```{r}
+drinks_content <- read_csv("starbucks-menu-nutrition-drinks.csv")
+```
+```{r}
+head(drinks_content)
+```
+
+```{r}
+tail(drinks_content)
+```
+
+```{r}
+dim(drinks_content)
+```
+
+```{r}
+names(drinks_content)
+```
+
+Question 2
+
+Calculate some quick summary statistics to check the mean, the variance, and the normality of the Calories variable. Write a quick summary of your initial impressions of the data.
+
+```{r}
+select(drinks_content, as.numeric("Calories"))
+```
+
+All of the columns are characters, and there is a lot of missing information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
