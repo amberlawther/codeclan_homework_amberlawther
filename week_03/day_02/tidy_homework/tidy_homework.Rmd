@@ -1,0 +1,291 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Question 1
+
+Load in the women_in_gov csv file. Make sure you remove all metadata from the top.
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+government_women <- read_csv("women_in_gov.csv", skip = 3)
+government_women
+```
+
+```{r}
+view(government_women)
+```
+
+```{r}
+dim(government_women)
+```
+
+```{r}
+head(government_women, 10)
+```
+
+
+```{r}
+tail(government_women, 10)
+```
+
+```{r}
+names(government_women)
+```
+
+
+
+
+
+
+
+Question 2
+
+Some of the column names contain spaces and numbers. Fix the column names.
+
+
+
+
+```{r}
+column_clean <- government_women %>%
+  rename("country_name" = "Country Name",
+         "country_code" = "Country Code",
+         "indicator_name" = "Indicator Name",
+         "indicator_code" =  "Indicator Code")
+column_clean
+```
+
+
+
+Question 3
+
+
+We have some columns in the data that don’t really need to be there. Confirm that the X64, Indicator.Name and Indicator.Code have the same values for all observations. If they do, remove those columns.
+
+
+```{r}
+column_rid <- column_clean %>%
+  select(-indicator_code, -indicator_name, -X64)
+column_rid
+```
+
+
+
+Question 4
+
+Think back to last week where we talked about wide vs long format. As the data is in wide format, it’s pretty clear to see we have a lot of missing values. Reshape the data from wide to long format, so that for each country the year column becomes a row.
+
+
+```{r}
+gov_women_long <- column_rid %>%
+  pivot_longer(cols = c("1960":"2018"),
+               names_to = "year",
+               values_to = "percent_women")
+gov_women_long
+```
+```{r}
+view(gov_women_long)
+```
+
+```{r}
+dim(gov_women_long)
+```
+
+
+Question 5
+
+You’ll notice your prop_women column contains missing values. Let’s do a few things. First, let’s count how many missing values you have. Then check how many different missing values you have (e.g. how many unique ones do you have). Then decide how you will deal with them. Will you insert average imputation values, most common imputation values, or use the multiple imputation method? Explain your decision. Then fix the missing values.
+
+
+
+
+```{r}
+value_check <- gov_women_long %>%
+  filter(is.na(percent_women))
+value_check
+```
+
+```{r}
+view(value_check)
+```
+
+```{r}
+value_check %>%
+  summarise(count = sum(is.na(percent_women)))
+```
+
+```{r}
+percent_women_imputed_zero <- gov_women_long %>%
+  mutate(percent_women = replace(percent_women,
+                                 is.na(percent_women),
+                                 0))
+percent_women_imputed_zero
+view(percent_women_imputed_zero)
+```
+
+
+I imputed a value of zero into the results, as this data is representing the proportion of women in government.  I feel that imputing any other values would give an artificially high percentage.  There are many years where women would not have been present in government, and many countries where there are low percentages.  It seems unethical to inflate the values and more important to show the disproportionate percentage of women in government.  
+
+
+
+Question 6
+
+Create a boxplot to see if there are any outliers in the proportion of women.
+
+
+
+```{r}
+boxplot(percent_women_imputed_zero$percent_women)
+```
+
+
+This doesn't look normal!  Lots of outliers, which is not unexpected.  I also tried to see what would happen if I imputed mode or mean, instead of zero, but I coudn't get that to work.  It just changed the column to a character, with all cells saying "numeric."
+
+
+
+Question 7
+
+Use the outliers package to calculate a zscore for each observation in your data. Mark any of the values in the prop_women column that are more or less than 3 standard deviations above or below the mean as outliers. Add this outlier flag as a new column within the dataset. Create a table that only contains the outliers and have a look at them.
+
+
+
+
+```{r}
+library(outliers)
+ggplot(percent_women_imputed_zero, aes(x = "country_name", y = percent_women)) +
+    geom_boxplot()
+```
+
+```{r}
+percent_women_zscores <- scores(percent_women_imputed_zero$percent_women)
+percent_women_zscores
+```
+
+
+```{r}
+is_outlier <- percent_women_zscores > 3 | percent_women_zscores < -3
+is_outlier
+```
+
+```{r}
+percent_women_imputed_zero <- percent_women_imputed_zero %>%
+  mutate(is_outlier = is_outlier)
+percent_women_imputed_zero
+view(percent_women_imputed_zero)
+```
+
+
+
+
+
+```{r}
+women_outliers <- percent_women_imputed_zero %>%
+  filter(is_outlier == TRUE)
+women_outliers
+view(women_outliers)
+```
+
+
+```{r}
+ggplot(women_outliers, aes(x = "country_name", y = percent_women)) +
+    geom_boxplot()
+```
+
+```{r}
+women_non_outliers <- percent_women_imputed_zero %>%
+  filter(is_outlier == FALSE)
+women_non_outliers
+view(women_non_outliers)
+```
+
+
+```{r}
+ggplot(women_non_outliers, aes(x = "country_name", y = percent_women)) +
+    geom_boxplot()
+```
+
+
+Question 8
+
+Next decide - what will you do with these outliers? Create a table with your newly dealt with outliers.
+
+
+
+```{r}
+women_outliers_filtered <- women_outliers %>%
+  select(country_name, year, percent_women) %>%
+  group_by(country_name) %>%
+  arrange(desc(percent_women))
+women_outliers_filtered
+view(women_outliers_filtered)
+```
+
+
+
+
+
+Question 9
+
+Now you have your clean dataset, let’s do some summarising. Find the top 10 countries with the highest mean proportion of women in government across all the years. Then find the bottom 10.
+
+
+```{r}
+mean_proportion <- percent_women_imputed_zero %>%
+  select(country_name, year, percent_women) %>%
+  filter(is_outlier == FALSE) %>%
+  group_by(country_name) %>%
+  summarise(mean(percent_women))
+
+mean_proportion
+view(mean_proportion)
+```
+
+```{r}
+women_non_outliers_filtered <- women_non_outliers %>%
+  select(country_name, year, percent_women) %>%
+  group_by(country_name) %>%
+  arrange(desc(percent_women))
+women_non_outliers
+```
+
+```{r}
+mean_proportion <- women_non_outliers_filtered %>%
+  select(country_name, year, percent_women) %>%
+  group_by(country_name) %>%
+  summarise(mean(percent_women))
+mean_proportion
+```
+```{r}
+
+```
+
+
+
+I've stayed up way too late, and I'm too tired to figure out what has gone wrong :)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
