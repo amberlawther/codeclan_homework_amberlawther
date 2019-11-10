@@ -81,9 +81,20 @@ tweets %>%
   
 ```
 
+-----------------------------------------------------------------
+
+5. Count the total number of likes (i.e. total of favorite_count), split by media type, and arrange them from most likes to least. Assume that any tweets without a listed media type are of type “text”.
 
 
 
+```{r}
+tweets %>%
+  mutate(media_type2 = replace_na(media_type, "text")) %>%
+  group_by(media_type2) %>%
+  summarise(favorite_sum = sum(favorite_count)) %>%
+  arrange(desc(favorite_sum))
+  
+```
 
 
 
