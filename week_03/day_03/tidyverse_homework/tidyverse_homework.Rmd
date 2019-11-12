@@ -109,14 +109,37 @@ tweets %>%
 
 
 
+```{r}
+library(RXKCD)
+```
 
 
+```{r}
+searchXKCD("data")
+```
 
 
+```{r}
+getXKCD(257)
+```
+
+```{r}
+getXKCD(195)
+```
 
 
+```{r}
+getXKCD(802)
+```
+
+```{r}
+searchXKCD("axes")
+```
 
 
+```{r}
+getXKCD(833)
+```
 
 
 
