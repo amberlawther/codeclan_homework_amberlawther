@@ -1,0 +1,246 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(wesanderson)
+library(viridis)
+```
+
+
+qb_revenue_breakdown
+qb_monthly_sales
+qb_competitors
+qb_device_data
+
+
+
+
+4 MVP
+
+4.1 Part 1
+1. Take the data in the dataset qb_revenue_breakdown and make a stacked bar chart showing the sources of revenue across the two years in the dataset.
+
+```{r}
+qb_revenue_breakdown
+```
+
+```{r}
+ggplot(qb_revenue_breakdown) +
+  aes(x = Year, y = Revenue, fill = Product) +
+  geom_col()
+```
+
+2. Make a line chart showing monthly sales of the “flagship product” - the KwikBit Unit1 - over the last year. This data is inside qb_monthly_sales, but you will need to use subset.
+
+```{r}
+qb_monthly_sales
+```
+
+
+```{r}
+ggplot(qb_monthly_sales) +
+  aes(x = Date, y = Amount) +
+  geom_line(data = subset(qb_monthly_sales, Cashflow == "Kwikbit Unit 1 Sales")) +
+  labs(
+    title = "\nKwikbit Unit 1 Sales over Time",
+    subtitle = "August 2018 to July 2019\n",
+    x = "\nDate",
+    y = "\nAmount"
+  )
+
+```
+
+
+
+3. Make a line chart showing monthly revenue and costs over the last year. This data is also in qb_monthly_sales.
+
+```{r}
+ggplot(qb_monthly_sales) +
+  aes(x = Date, y = Amount, colour = Cashflow) +
+  geom_line(data = subset(qb_monthly_sales, Cashflow != "Kwikbit Unit 1 Sales"))
+```
+
+
+
+4. Show annual sales of personal fitness trackers over the last 5 years broken down by company as a ribbon plot (use geom_area). This data is in qb_competitors.
+
+```{r}
+qb_competitors
+```
+
+```{r}
+ggplot(qb_competitors) +
+  aes(x = Year, y = Revenue, fill = Company) +
+  geom_area()
+```
+
+
+
+5. Now show the sales from the 5 competitors as a line graph. Include an extra layer that shows the data points used to make the lines.
+
+```{r}
+ggplot(qb_competitors) +
+  geom_line(aes(x = Year, y = Revenue, colour = Company)) +
+  geom_point(aes(x = Year, y = Revenue, colour = Company))
+```
+
+
+
+6. Now the company wants to compare the number of steps that their device counts vs. their competitors. Make a line graph of the number of steps throughout time, and use faceting to compare between individuals and devices. Data is in qb_device_data.
+
+
+```{r}
+qb_device_data
+```
+
+
+
+```{r}
+device_plot <- qb_device_data %>%
+  mutate(total_minutes = hours * 60 + mins) %>%
+  ggplot +
+  aes(x = total_minutes, y = counts, colour = id) +
+  geom_line() +
+  facet_wrap(~ device) +
+  labs(
+    x = "\nMinutes",
+    y = "Step Counts\n",
+    title = "Comparison of Step Counts",
+    subtitle = "Qikbit1 vs. The Competition\n"
+  )
+device_plot
+
+```
+
+
+
+4.2 Part 2
+Take the plots that you produced in part one and now polish them by:
+
+1. Adding appropriate labels
+2. Changing the scales and coordinates when appropriate.
+3. Applying a unified theme, which is described below:
+* Graphs should have white backgrounds, and use colour sparingly.
+* There should be faint grid lines.
+* Font sizes should be ~12pt although titles should be slightly larger and axis labels can be slightly     smaller.
+* All plots should use colours from the following company colour scheme.
+
+
+```{r}
+col_scheme <- c("#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")
+```
+
+
+
+```{r}
+ggplot(qb_revenue_breakdown) +
+  aes(x = Year, y = Revenue, fill = Product) +
+  geom_col() +
+  scale_fill_manual(values = col_scheme) +
+  labs(
+    title = "Sources of Revenue in 2018 and 2019\n"
+  ) +
+  theme_light()
+
+```
+
+
+
+```{r}
+ggplot(qb_monthly_sales) +
+  aes(x = Date, y = Amount) +
+  geom_line(data = subset(qb_monthly_sales, Cashflow == "Kwikbit Unit 1 Sales")) +
+  labs(
+    title = "\nKwikbit Unit 1 Sales over Time",
+    subtitle = "August 2018 to July 2019\n",
+    x = "\nDate",
+    y = "\nAmount"
+  ) +
+  theme_light()
+```
+
+
+
+
+```{r}
+ggplot(qb_monthly_sales) +
+  aes(x = Date, y = Amount, colour = Cashflow) +
+  geom_line(data = subset(qb_monthly_sales, Cashflow != "Kwikbit Unit 1 Sales")) +
+  scale_colour_manual(values = col_scheme) +
+  labs(
+    title = "Monthly Revenue And Costs",
+    subtitle = "August 2018 to July 2019"
+  ) +
+  theme_light()
+```
+
+
+```{r}
+ggplot(qb_competitors) +
+  aes(x = Year, y = Revenue, fill = Company) +
+  geom_area() +
+  labs(
+    title = "Fitness Tracker Sales",
+    subtitle = "2015 to 2019\n"
+  ) +
+  scale_fill_manual(values = col_scheme) +
+  theme_light()
+```
+
+
+
+```{r}
+ggplot(qb_competitors) +
+  geom_line(aes(x = Year, y = Revenue, colour = Company)) +
+  geom_point(aes(x = Year, y = Revenue, colour = Company)) +
+  labs(
+    title = "Fitness Tracker Sales",
+    subtitle = "2015 to 2019\n"
+  ) +
+  scale_colour_manual(values = col_scheme) +
+  theme_light()
+```
+
+
+
+```{r}
+device_plot <- qb_device_data %>%
+  mutate(total_minutes = hours * 60 + mins) %>%
+  ggplot +
+  aes(x = total_minutes, y = counts, colour = id) +
+  geom_line() +
+  facet_wrap(~ device) +
+  labs(
+    x = "\nMinutes",
+    y = "Step Counts\n",
+    title = "Comparison of Step Counts",
+    subtitle = "Qikbit1 vs. The Competition\n"
+  ) +
+  scale_colour_manual(values = col_scheme) +
+  theme_light()
+device_plot
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
