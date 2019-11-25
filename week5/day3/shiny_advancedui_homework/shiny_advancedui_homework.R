@@ -6,7 +6,7 @@ library(CodeClanData)
 library(styler)
 library(shinydashboard)
 library(shinythemes)
-
+library(rsconnect)
 
 ui <- fluidPage(theme = shinytheme("superhero"),
     titlePanel("Five Country Medal Comparison"),

@@ -1,0 +1,144 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(wesanderson)
+library(viridis)
+library(ggthemes)
+library(shinythemes)
+
+```
+
+```{r}
+
+view(game_sales)
+```
+
+
+```{r}
+game_years <- game_sales %>%
+  select(year_of_release, developer, platform, name, sales) %>%
+  arrange(year_of_release)
+game_years
+  
+```
+
+
+```{r}
+platform_names <- game_sales %>%
+  distinct(platform)
+platform_names
+```
+
+
+```{r}
+developer_names <- game_sales %>%
+  distinct(developer)
+developer_names
+```
+
+
+```{r}
+genre_types <- game_sales %>%
+  distinct(genre) 
+genre_types
+```
+
+```{r}
+name_names <- game_sales %>%
+  distinct(name)
+name_names
+```
+
+```{r}
+dim(game_sales)
+```
+
+```{r}
+abe <- game_sales %>%
+  arrange(name)
+abe
+```
+
+
+```{r}
+genre_sales_plot <- game_sales %>%
+  ggplot() +
+  aes(x = genre, y = sales, fill = genre) +
+geom_col(position = "dodge") +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_fill_discrete()
+genre_sales_plot
+```
+
+```{r}
+#sales_plot <- game_sales %<%
+  #filter()
+  ggplot(game_sales) +
+  aes(x = developer, y = sales, fill = developer) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_fill_discrete()
+  
+
+```
+
+```{r}
+ggplot(game_sales) +
+  aes(x= platform, y = sales, fill = platform) +
+  geom_col() +
+  scale_fill_discrete()
+  
+```
+
+```{r}
+name_sales_plot <- game_sales %>%
+  select(name, sales) %>%
+  top_n(10) %>%
+ggplot() +
+  aes(x = name, y = sales) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90))
+  
+name_sales_plot
+
+
+```
+
+
+```{r}
+name_sales <- game_sales %>%
+  select(name, sales, developer, platform, year_of_release) %>%
+  filter(sales >= 8.16) %>%
+  arrange(desc(sales))
+  name_sales
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
