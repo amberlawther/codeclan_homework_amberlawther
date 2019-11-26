@@ -1,0 +1,205 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(prob)
+library(gtools)
+library(tidyverse)
+```
+
+
+1. If I roll a six-sided die once, what is the probability of getting a number less than 5?
+
+```{r}
+4 / 6
+```
+
+
+
+2. How many outcomes are there in the sample space of an experiment in which we toss three dice?
+
+```{r}
+6^3
+```
+
+
+
+3. In an experiment where we roll four dice:
+
+* how many outcomes are in the event total_equals_5_6_7 (i.e. the total of the four dice equals 5, 6 or 7)?
+
+
+
+
+
+```{r}
+S_four_dice <- rolldie(4)
+S_four_dice <- S_four_dice %>%
+  mutate(total = X1 + X2 + X3 + X4)
+S_four_dice
+nrow(S_four_dice)
+```
+
+
+```{r}
+total_equals_5_6_or_7 <- S_four_dice %>%
+  filter(total >= 5 & total <= 7)
+  
+
+total_equals_5_6_or_7
+nrow(total_equals_5_6_or_7)
+```
+
+
+* what is the probability of this event?
+
+```{r}
+34 / 1296
+```
+
+
+
+* what assumptions do we apply in answering part iii?
+
+unbiased dice
+
+
+
+4. Five chairs are placed in a row in a room, along with five people of differing height. The people sit down randomly on the chairs. What is the probability that they sit in order of decreasing height, left to right?
+
+
+```{r}
+mystery_incorporated <- tibble(
+  member = c("Scooby_Doo", "Shaggy", "Fred", "Daphne", "Velma"),
+  height_cm = c(86, 183, 180, 170, 145),
+  chair = c("A", "B", "C", "D", "E")
+)
+mystery_incorporated
+
+```
+
+```{r}
+random_sit <- mystery_incorporated %>%
+  permutations(n = 5, r = 5, v = height, repeats.allowed = FALSE)
+random_sit
+```
+I really wanted that to work
+
+
+
+```{r}
+heights <- c(86, 183, 180, 170, 145)
+
+height_sit <- permutations(n = 5, r = 5, v = heights, repeats.allowed = FALSE)
+height_sit
+```
+
+```{r}
+1 / 120
+```
+
+
+
+5. I roll six dice:
+
+what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
+
+```{r}
+S_six_dice <- rolldie(6)
+S_six_dice
+
+dice_numbers <- c(1, 2, 3, 4, 5, 6)
+
+descending_six_dice <- permutations(n = 6, r = 6, v = dice_numbers, repeats.allowed = FALSE)
+descending_six_dice
+
+as.tibble(descending_six_dice)
+
+ 
+```
+
+```{r}
+1 / 720
+```
+
+
+what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
+[Hint have a look at the isin() function in the prob package. For example, to filter all rows containing 6, 1, 2 in that order, you could use isin(., c(6, 1, 2), ordered = TRUE)]
+
+
+```{r}
+random_six_dice <- permutations(n = 6, r = 6, v = dice_numbers, repeats.allowed = FALSE)
+isin(random_six_dice, c(6, 5, 4, 3, 2, 1), ordered = FALSE)
+```
+
+6. If I draw a single card from a 52-card deck, and it is black, what is the probability that its suit is spades?
+
+Hints
+Investigate the cards() function in the prob package, if you’d like to try this in R (make a deck without jokers).
+You could think about adding your own black_card random variable to the sample space, which would be TRUE if the suit is ‘Spade’ or ‘Club’, and FALSE otherwise.
+
+
+```{r}
+S_cards <- cards(jokers = FALSE)
+A_cards <- subset(S_cards, suit == "Spade")
+
+S_cards
+
+A_cards
+```
+
+
+```{r}
+13 / 26
+```
+
+7. Eight patients: Alice, Bob, Carmen, Dinesh, Ella, Fergus, Gianna and Henry are waiting to see a doctor, but only five appointment slots are left today.
+
+In how many different orders can the doctor see patients today?
+
+Hint
+permutations() returns a matrix, but it’s better to convert it to a tibble with as_tibble(). You can then set column names etc.]
+
+```{r}
+patients <- c("Alice", "Bob", "Carmen", "Dinesh", "Ella", "Fergus", "Gianna", "Henry")
+
+random_patient_order <- combinations(n = 8, r = 5, v = patients, repeats.allowed = FALSE)
+as.tibble(random_patient_order)
+```
+
+
+
+
+What is the probability of Gianna and Danesh both being seen today?
+Hint
+Filter using isin()
+
+```{r}
+gianna_and_dinesh <- combinations(n = 8, r = 5, v = patients) 
+both_patients <- gianna_and_dinesh %>%
+  filter(isin(., c("Gianna", "Dinesh"), ordered = FALSE))
+```
+
+
+What is the probability of Gianna being seen before Dinesh today?
+Hint
+Think about the ordered = argument of isin()
+
+(harder) Carmen and Henry have now been triaged as high priority and will be seen in the first two available slots, although their order hasn’t yet been determined. In how many different orders can the patients now be seen?
+Hint
+
+
+
+
+
+
+
+
+
+
+
+
+
+
