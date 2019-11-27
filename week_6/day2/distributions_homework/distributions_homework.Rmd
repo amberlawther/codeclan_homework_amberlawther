@@ -1,0 +1,95 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
+
+```{r}
+phones <- read_csv("20190928-items.csv")
+phones
+```
+
+```{r}
+biggest_brand <- phones %>%
+  group_by(brand) %>%
+  summarise(count = n())
+
+biggest_brand
+```
+
+
+
+```{r}
+phone_stats <- phones %>%
+  filter(brand == "Samsung") %>%
+  summarise(
+    num = n(),
+    mean = mean(rating),
+    sd = sd(rating)
+  )
+  phone_stats
+```
+
+
+
+```{r}
+phones %>% 
+  filter(brand == "Samsung") %>%
+  ggplot(aes(x = rating)) +
+  geom_histogram(aes(y = ..density..), col = "white") +
+  stat_function(
+    fun = dnorm, 
+    args = list(
+      mean = phone_stats$mean, 
+      sd = phone_stats$sd
+    ),
+    col = "red"
+  )
+```
+
+
+```{r}
+phone_rating <- phones %>%
+  select(brand, rating) %>%
+  filter(brand == "Samsung")
+
+phone_rating
+```
+
+```{r}
+phone_rating %>%
+  filter(rating >= phone_stats$mean - phone_stats$sd) %>%
+  filter(rating <= phone_stats$mean + phone_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(phone_rating))
+```
+
+```{r}
+phone_rating %>%
+  filter(rating >= phone_stats$mean - 2 * phone_stats$sd) %>%
+  filter(rating <= phone_stats$mean + 2 * phone_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(phone_rating))
+```
+
+```{r}
+phone_rating %>%
+  filter(rating >= phone_stats$mean - 3 * phone_stats$sd) %>%
+  filter(rating <= phone_stats$mean + 3 * phone_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(phone_rating))
+```
+
+
+```{r}
+qqnorm(phone_rating$rating)
+```
+
+
+
+
+
+
+
+

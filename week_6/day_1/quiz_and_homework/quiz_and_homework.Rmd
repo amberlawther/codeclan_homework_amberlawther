@@ -131,7 +131,9 @@ what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the
 
 ```{r}
 random_six_dice <- permutations(n = 6, r = 6, v = dice_numbers, repeats.allowed = FALSE)
-isin(random_six_dice, c(6, 5, 4, 3, 2, 1), ordered = FALSE)
+isin(random_six_dice, c(6, 5, 4, 3, 2, 1), ordered = FALSE
+     
+
 ```
 
 6. If I draw a single card from a 52-card deck, and it is black, what is the probability that its suit is spades?
