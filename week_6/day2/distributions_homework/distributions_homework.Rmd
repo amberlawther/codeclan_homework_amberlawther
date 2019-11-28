@@ -71,14 +71,14 @@ phone_rating %>%
 phone_rating %>%
   filter(rating >= phone_stats$mean - 2 * phone_stats$sd) %>%
   filter(rating <= phone_stats$mean + 2 * phone_stats$sd) %>%
-  summarise(prop_within_1sd = n() / nrow(phone_rating))
+  summarise(prop_within_2sd = n() / nrow(phone_rating))
 ```
 
 ```{r}
 phone_rating %>%
   filter(rating >= phone_stats$mean - 3 * phone_stats$sd) %>%
   filter(rating <= phone_stats$mean + 3 * phone_stats$sd) %>%
-  summarise(prop_within_1sd = n() / nrow(phone_rating))
+  summarise(prop_within_3sd = n() / nrow(phone_rating))
 ```
 
 
