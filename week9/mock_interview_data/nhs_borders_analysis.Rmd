@@ -1,0 +1,230 @@
+---
+title: "NHS Borders Analysis"
+author: "Amber Lawther"
+date: "19/12/2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r results='hide', echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(readr)
+library(knitr)
+library(janitor)
+```
+
+
+```{r results='hide', echo=FALSE, warning=FALSE, message=FALSE}
+all_regions <- read_csv("opendata_inc9317_hb2018.csv")
+
+borders_cancer <- all_regions %>%
+  filter(HBR2014 == "S08000016")
+
+
+
+borders_clean <- clean_names(borders_cancer)
+
+
+all_types <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages, crude_rate) %>%
+  filter(cancer_site == "All cancer types",
+         sex == "All")
+
+by_type <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages, crude_rate) %>%
+  filter(cancer_site != "All cancer types",
+         sex == "All") %>%
+  group_by(cancer_site)%>%
+  arrange(desc(crude_rate))
+
+NHS_dkblue <- "#002d72"
+NHS_ltblue <- "#00a9e0"
+
+NHS_palette <- c(NHS_dkblue, NHS_ltblue, "black")
+
+male_female_1993 <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages) %>%
+  filter(cancer_site != "All cancer types",
+         year == 1993,
+         sex != "All") %>%
+  rename(mf_year_1993 = year,
+         mf_incidences_1993 = incidences_all_ages)
+
+male_female_2017 <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages) %>%
+  filter(cancer_site != "All cancer types",
+         year == 2017,
+         sex != "All") %>%
+  rename(mf_year_2017 = year,
+         mf_incidences_2017 = incidences_all_ages)
+
+male_female_1993to2017 <- male_female_1993 %>%
+  inner_join(male_female_2017)
+
+male_female_increase <- male_female_1993to2017 %>%
+  ungroup() %>%
+  mutate(mf_incidence_change = mf_incidences_2017 - mf_incidences_1993) %>%
+  arrange(desc(mf_incidence_change)) %>%
+  top_n(10)
+
+mf_site_percent_increase <- male_female_increase %>%
+  mutate(mf_percent_increase = mf_incidence_change/mf_incidences_1993 * 100) 
+
+male_female_decrease <- male_female_1993to2017 %>%
+  mutate(mf_incidence_change = mf_incidences_2017 - mf_incidences_1993) %>%
+  arrange(mf_incidence_change) %>%
+  slice(1:10)
+
+mf_site_percent_decrease <- male_female_decrease %>%
+  mutate(mf_percent_decrease = mf_incidence_change/mf_incidences_1993 * 100)
+
+
+
+```
+
+# Incidence of Cancer in NHS Borders
+
+### Initial look at overall incidences to determine if there is an apparent trend
+
+
+
+
+
+
+```{r, echo=FALSE}
+all_types_plot <- all_types %>%
+  ggplot() +
+  geom_point(aes(x = year, y = incidences_all_ages), colour = NHS_dkblue) +
+  geom_line(aes(x = year, y = incidences_all_ages), colour = NHS_dkblue) +
+  labs(
+    x = "\nYear\n\n",
+    y = "Incidences of Cancer\n",
+    title = "\n\nAll Cancer Types from 1993 to 2017\n"
+    )
+  
+all_types_plot
+```
+
+> The graph displays an increasing trend in the overall incidence of cancer in NHS Borders.
+
+
+
+
+
+
+#### The next step was to subtract 1993 incidences from 2017 incidences to portray the cancer sites with 
+#### the largest increase between the two years.
+
+
+
+
+
+
+```{r, echo=FALSE}
+mf_increase_plot <- male_female_increase %>%
+  ggplot(aes(x = cancer_site, y = mf_incidence_change, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Change\n",
+    y = "\nCancer Site\n\n",
+    title = "\n\nIncrease in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 11))
+
+mf_increase_plot
+```
+
+> This graph shows that skin cancers make up some of the largest incidence changes between 1993 and 2017.
+
+
+
+
+
+
+#### The information was corroborated by plotting line graphs, which illustrated an overall increase from
+#### 1993 to 2017, and also by plotting graphs which showed the increase in incidences without the breakdown of sex.
+
+
+
+
+
+
+```{r, echo=FALSE}
+mf_percent_increase_plot <- mf_site_percent_increase %>%
+  ggplot(aes(x = cancer_site, y = mf_percent_increase, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Percent Increase\n",
+    y = "\nCancer Site\n\n",
+    title = "\n\nPercent Increase in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 10))
+  
+mf_percent_increase_plot
+```
+
+> The percent increases were calculated to compare with the previous graph
+
+
+
+
+
+
+#### The largest decreases between 1993 and 2017, along with the percent decreases, were also calculated
+#### and visualised, which can be seen in the following graphs.
+
+
+
+
+
+
+```{r, echo=FALSE}
+male_female_decrease_plot <- male_female_decrease %>%
+  ggplot(aes(x = cancer_site, y = mf_incidence_change, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Change\n",
+    y = "\nCancer Site\n\n",
+    title = "\n\nDecrease in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 11))
+  
+male_female_decrease_plot
+```
+
+
+
+
+
+
+```{r, echo=FALSE}
+mf_percent_decrease_plot <- mf_site_percent_decrease %>%
+  ggplot(aes(x = cancer_site, y = mf_percent_decrease, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Percent Decrease\n",
+    y = "\nCancer Site\n\n",
+    title = "\n\nPercent Decrease in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 10))
+  
+mf_percent_decrease_plot
+```
+
+
+
+
+
+
+
+

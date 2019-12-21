@@ -1,0 +1,435 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+
+```{r}
+all_regions <- read_csv("opendata_inc9317_hb2018.csv")
+```
+
+
+
+
+```{r}
+view(all_regions)
+```
+
+```{r}
+names(all_regions)
+```
+
+
+```{r}
+borders_cancer <- all_regions %>%
+  filter(HBR2014 == "S08000016")
+borders_cancer
+view(borders_cancer)
+```
+
+
+
+```{r}
+library(janitor)
+borders_clean <- clean_names(borders_cancer)
+borders_clean
+
+```
+
+```{r}
+distinct_code <- borders_clean %>%
+  distinct(cancer_site_icd10code)
+distinct_code
+```
+
+```{r}
+distinct_site <- borders_clean %>%
+  distinct(cancer_site)
+distinct_site
+```
+
+
+
+```{r}
+crude_rate_plot <- borders_clean %>%
+  ggplot(aes(x = year, y = crude_rate)) +
+  geom_col(fill = NHS_dkblue)
+crude_rate_plot
+```
+
+
+```{r}
+all_types <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages, crude_rate) %>%
+  filter(cancer_site == "All cancer types",
+         sex == "All")
+all_types
+```
+
+
+```{r}
+all_types_plot <- all_types %>%
+  ggplot() +
+  geom_point(aes(x = year, y = incidences_all_ages), colour = NHS_dkblue) +
+  geom_line(aes(x = year, y = incidences_all_ages), colour = NHS_dkblue) +
+  labs(
+    x = "\nYear",
+    y = "Incidences of Cancer\n",
+    title = "All Cancer Types from 1993 to 2017\n"
+    )
+  
+all_types_plot
+```
+
+
+```{r}
+by_type <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages, crude_rate) %>%
+  filter(cancer_site != "All cancer types",
+         sex == "All") %>%
+  group_by(cancer_site)%>%
+  arrange(desc(crude_rate))
+by_type
+```
+
+
+
+
+
+
+
+```{r}
+incidents_1993 <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages) %>%
+  filter(cancer_site != "All cancer types",
+         year == 1993,
+         sex == "All") %>%
+  rename(year_1993 = year,
+         incidences_1993 = incidences_all_ages) 
+   
+incidents_1993
+```
+
+
+
+```{r}
+incidents_2017 <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages) %>%
+  filter(cancer_site != "All cancer types",
+         year == 2017,
+         sex == "All") %>%
+  rename(year_2017 = year,
+         incidences_2017 = incidences_all_ages) 
+  
+incidents_2017
+```
+
+
+
+```{r}
+incidences_1993to2017 <- incidents_1993 %>%
+  inner_join(incidents_2017)
+incidences_1993to2017
+```
+
+
+```{r}
+incidences_increase <- incidences_1993to2017 %>%
+  mutate(incidence_change = incidences_2017 - incidences_1993) %>%
+  arrange(desc(incidence_change)) %>%
+  top_n(10)
+incidences_increase
+```
+
+```{r}
+skin_cancer_line_plot <- by_type %>%
+  filter(cancer_site == "Non-melanoma skin cancer") %>%
+  ggplot(aes(x = year, y = incidences_all_ages)) +
+  geom_line(colour = NHS_dkblue) +
+  geom_point(colour = NHS_dkblue) +
+  labs(
+    x = "\nYear",
+    y = "Incidences\n",
+    title = "Incidences of Non-melanoma Skin Cancer"
+    )
+  
+skin_cancer_line_plot 
+
+
+```
+
+```{r}
+oropharyngeal_cancer_line_plot <- by_type %>%
+  filter(cancer_site == "Oropharyngeal cancers") %>%
+  ggplot(aes(x = year, y = incidences_all_ages)) +
+  geom_line(colour = NHS_dkblue) +
+  geom_point(colour = NHS_dkblue) +
+  labs(
+    x = "\nYear",
+    y = "Incidences\n",
+    title = "Incidences of Oropharyngeal Cancers\n"
+    )
+
+oropharyngeal_cancer_line_plot
+  
+```
+
+```{r}
+bladder_cancer_line_plot <- by_type %>%
+  filter(cancer_site == "Bladder") %>%
+  ggplot(aes(x = year, y = incidences_all_ages)) +
+  geom_line(colour = NHS_dkblue) +
+  geom_point(colour = NHS_dkblue) +
+  labs(
+    x = "\nYear",
+    y = "Incidences\n",
+    title = "Incidences of Bladder Cancer\n"
+    )
+
+bladder_cancer_line_plot
+```
+
+
+
+
+
+```{r}
+site_percent_increase <- incidences_increase %>%
+  mutate(percent_increase = incidence_change/incidences_1993 * 100)
+site_percent_increase
+```
+
+
+```{r}
+percent_increase_plot <- site_percent_increase %>%
+  ggplot(aes(x = cancer_site, y = percent_increase)) +
+  geom_col(fill = NHS_ltblue) +
+  coord_flip()
+percent_increase_plot
+```
+
+
+
+```{r}
+NHS_dkblue <- "#002d72"
+NHS_ltblue <- "#00a9e0"
+
+NHS_palette <- c(NHS_dkblue, NHS_ltblue, "black")
+```
+
+
+
+```{r}
+incidences_increase_plot <- incidences_increase %>%
+  ggplot(aes(x = cancer_site, y = incidence_change)) +
+  geom_col(fill = NHS_dkblue) +
+  coord_flip() 
+  #scale_fill_manual(NHS_dkblue)
+incidences_increase_plot
+```
+
+
+
+
+```{r}
+incidences_decrease <- incidences_1993to2017 %>%
+  mutate(incidence_change = incidences_2017 - incidences_1993) %>%
+  arrange(incidence_change) %>%
+  slice(1:9)
+  
+incidences_decrease
+```
+
+```{r}
+incidences_decrease_plot <- incidences_decrease %>%
+  ggplot(aes(x = cancer_site, y = incidence_change)) +
+  geom_col(fill = NHS_dkblue) +
+  coord_flip()
+incidences_decrease_plot
+```
+
+
+```{r}
+site_percent_decrease <- incidences_decrease %>%
+  mutate(percent_decrease = incidence_change/incidences_1993 * 100)
+site_percent_decrease
+```
+
+```{r}
+percent_decrease_plot <- site_percent_decrease %>%
+  ggplot(aes(x = cancer_site, y = percent_decrease)) +
+  geom_col(fill = NHS_ltblue) +
+  coord_flip()
+percent_decrease_plot
+```
+
+
+
+
+Comparing males and females
+
+
+
+
+
+
+
+```{r}
+male_female_1993 <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages) %>%
+  filter(cancer_site != "All cancer types",
+         year == 1993,
+         sex != "All") %>%
+  rename(mf_year_1993 = year,
+         mf_incidences_1993 = incidences_all_ages)
+male_female_1993
+```
+
+
+```{r}
+male_female_2017 <- borders_clean %>%
+  select(cancer_site, sex, year, incidences_all_ages) %>%
+  filter(cancer_site != "All cancer types",
+         year == 2017,
+         sex != "All") %>%
+  rename(mf_year_2017 = year,
+         mf_incidences_2017 = incidences_all_ages)
+male_female_2017
+```
+
+
+```{r}
+male_female_1993to2017 <- male_female_1993 %>%
+  inner_join(male_female_2017)
+male_female_1993to2017
+```
+
+
+
+
+
+
+
+```{r}
+male_female_increase <- male_female_1993to2017 %>%
+  ungroup() %>%
+  mutate(mf_incidence_change = mf_incidences_2017 - mf_incidences_1993) %>%
+  arrange(desc(mf_incidence_change)) %>%
+  top_n(10)
+male_female_increase
+```
+
+```{r}
+mf_increase_plot <- male_female_increase %>%
+  ggplot(aes(x = cancer_site, y = mf_incidence_change, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Change\n",
+    y = "\nCancer Site",
+    title = "Increase in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 11))
+
+mf_increase_plot
+```
+
+
+
+
+
+```{r}
+mf_site_percent_increase <- male_female_increase %>%
+  mutate(mf_percent_increase = mf_incidence_change/mf_incidences_1993 * 100) 
+mf_site_percent_increase
+```
+
+```{r}
+mf_percent_increase_plot <- mf_site_percent_increase %>%
+  ggplot(aes(x = cancer_site, y = mf_percent_increase, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Percent Increase\n",
+    y = "\nCancer Site",
+    title = "Percent Increase in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 10))
+  
+mf_percent_increase_plot
+```
+
+
+
+
+```{r}
+male_female_decrease <- male_female_1993to2017 %>%
+  mutate(mf_incidence_change = mf_incidences_2017 - mf_incidences_1993) %>%
+  arrange(mf_incidence_change) %>%
+  slice(1:10)
+  
+male_female_decrease
+```
+
+```{r}
+male_female_decrease_plot <- male_female_decrease %>%
+  ggplot(aes(x = cancer_site, y = mf_incidence_change, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Change\n",
+    y = "\nCancer Site",
+    title = "Decrease in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 11))
+  
+male_female_decrease_plot
+```
+
+
+
+```{r}
+mf_site_percent_decrease <- male_female_decrease %>%
+  mutate(mf_percent_decrease = mf_incidence_change/mf_incidences_1993 * 100)
+mf_site_percent_decrease
+```
+
+
+```{r}
+mf_percent_decrease_plot <- mf_site_percent_decrease %>%
+  ggplot(aes(x = cancer_site, y = mf_percent_decrease, fill = sex)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(values = NHS_palette) +
+  labs(
+    x = "Incidence Percent Decrease\n",
+    y = "\nCancer Site",
+    title = "Percent Decrease in Incidences between 1993 and 2017\n",
+    fill = "Sex") +
+  theme(plot.title = element_text(size = 10))
+  
+mf_percent_decrease_plot
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
