@@ -1,0 +1,241 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+data(msleep)
+```
+
+```{r}
+library(infer)
+```
+
+```{r}
+view(msleep)
+```
+
+
+Jabberwockies sleep for around 7 hours a night, on average. Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+
+
+Null hypothesis: The mean sleep_total of sampled animal types does not differ from the mean sleep value of jabberwockies.
+  H(0): μ(sleep_total) = 7
+
+Alternative hypothesis:  The mean sleep_total of sampled animals types differs from the mean sleep value of jabberwockies.
+  H(a): μ(sleep_total) != 7
+  
+  α = 0.05
+  
+```{r}
+observed_stat <- msleep %>%
+  summarise(mean_sleep = mean(sleep_total))
+observed_stat
+```
+  
+```{r}
+msleep %>%
+ggplot(aes(x = sleep_total)) +
+geom_histogram(bins = 30)
+```
+
+
+```{r}
+msleep %>%
+ggplot(aes(y = sleep_total)) +
+  geom_boxplot() +
+  coord_flip()
+  
+```
+
+```{r}
+null_distribution <- msleep %>%
+  specify(response = sleep_total) %>%
+  hypothesize(null = "point", mu = 7) %>%
+  generate(reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+
+null_distribution
+```
+
+```{r}
+null_distribution %>%
+  visualise(bins = 30)
+```
+
+
+```{r}
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat, direction = "both")
+```
+
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "both")
+p_value
+```
+Reject the null hypothesis.
+
+
+
+Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, on average.
+
+```{r}
+msleep_tidy <- msleep %>%
+  drop_na()
+msleep_tidy
+```
+
+
+```{r}
+omni_vs_herbi <- msleep_tidy %>%
+  mutate(omni_herbi = case_when(vore == "omni" ~ "omni",
+                                vore == "herbi" ~ "herbi")) %>%
+  select(omni_herbi, sleep_total) %>%
+drop_na()
+omni_vs_herbi
+  
+```
+
+
+null hypothesis:  Omnivores do not sleep longer than herbivores.
+  H(0): μ(sleep)omni - μ(sleep)herbi = 0
+
+alternative hypothesis: Omnivores sleep longer than herbivores
+  H(a): μ(sleep)omni - μ(sleep)herbi > 0
+  
+α = 0.05
+
+```{r}
+omni_vs_herbi %>%
+  group_by(omni_herbi) %>%
+  summarise(n = n())
+```
+
+```{r}
+omni_vs_herbi %>%
+  ggplot(aes(y = sleep_total, x = omni_herbi)) +
+  geom_boxplot()
+```
+
+```{r}
+null_distribution_oh <- omni_vs_herbi %>%
+  specify(sleep_total ~ omni_herbi) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 10000, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+head(null_distribution_oh)
+```
+
+
+```{r}
+observed_stat <- omni_vs_herbi %>% 
+  specify(sleep_total ~ omni_herbi) %>%
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+  
+observed_stat
+```
+
+
+```{r}
+null_distribution_oh %>%
+  visualise() +
+  shade_p_value(obs_stat = observed_stat, direction = "right")
+```
+
+
+```{r}
+p_value <- null_distribution_oh %>%
+  get_p_value(obs_stat = observed_stat, direction = "right")
+
+p_value
+```
+
+Fail to reject the null hypothesis.
+
+
+
+
+Perform an appropriate statistical test to determine whether the proportion of domesticated animals in the population of animal types is greater than 5%.
+
+null hypothesis: the proportion of domesticated animals is not greater than 5%
+   H(0) : p(domesticated) !> 0.05
+  
+alternative hypothesis: the proporition of domesticated animals is greater than 5 %.
+  H(a) : p(domesticated) > 0.05
+  
+α=0.05
+  
+  
+```{r}
+domesticated_animals <- msleep %>%
+  mutate(domesticated_flag = ifelse(conservation == "domesticated",
+                                    "domesticated", 
+                                    "not_domesticated"))
+  
+           
+                              
+                                         
+  
+
+domesticated_animals
+
+
+```
+  
+  
+
+
+```{r}
+null_distribution_domesticated <- domesticated_animals %>%
+  specify(response = domesticated_flag, success = "domesticated") %>% 
+  hypothesize(null = "point", p = 0.05) %>%
+  generate(reps = 10000, type = "simulate") %>%
+  calculate(stat = "prop")
+head(null_distribution_domesticated)
+```
+
+```{r}
+null_distribution_domesticated %>%
+  visualise()
+```
+
+```{r}
+observed_stat_domesticated <- domesticated_animals %>% 
+  specify(response = domesticated_flag, success = "domesticated") %>% 
+  calculate(stat = "prop")
+
+observed_stat
+```
+
+
+
+```{r}
+null_distribution_domesticated %>%
+  visualise() +
+shade_p_value(obs_stat = observed_stat_domesticated, direction = "right")
+```
+
+
+
+```{r}
+p_value <- null_distribution_domesticated %>%
+  get_p_value(obs_stat = observed_stat_domesticated, direction = "right")
+
+p_value
+```
+
+
+fail to reject the null hypothesis.
+
+I know something went wrong in this problem.  I tried a few different ways to change the NAs, but I just couldn't get it to work.  Went ahead with the problem anyway, just to get the practice of working through it.
+
+
+
+
+
+
