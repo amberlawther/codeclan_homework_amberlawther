@@ -1,0 +1,217 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+```
+
+MVP
+
+1. Load the diamonds.csv data set and undertake an initial exploration of the data. You will find a description of the meanings of the variables on the relevant Kaggle page
+
+
+
+```{r}
+diamonds_raw <- read_csv("diamonds.csv")
+```
+
+
+```{r}
+view(diamonds_raw)
+```
+
+
+```{r}
+diamonds <- diamonds_raw %>%
+  select(-X1)
+
+```
+
+```{r}
+view(diamonds)
+```
+
+```{r}
+library(mosaicData)
+library(GGally)
+library(ggiraphExtra)
+```
+
+
+
+2. We expect the carat of the diamonds to be strongly correlated with the physical dimensions x, y and z. Use ggpairs() to investigate correlations between these four variables.
+
+```{r}
+ggpairs(diamonds)
+```
+
+
+
+3. So, we do find significant correlations. Let’s drop columns x, y and z from the dataset, in preparation to use only carat going forward.
+
+```{r}
+diamonds_trim <- diamonds %>%
+  select(-x, -y, -z)
+diamonds_trim
+```
+
+```{r}
+view(diamonds_trim)
+```
+
+```{r}
+summary(diamonds_trim)
+```
+
+
+4. We are interested in developing a regression model for the price of a diamond in terms of the possible predictor variables in the dataset.
+
+  i.Use ggpairs() to investigate correlations between price and the predictors (this may take a while to run, don’t worry, make coffee or something).
+
+  ii.Perform further ggplot visualisations of any significant correlations you find.
+
+
+```{r}
+ggpairs(diamonds_trim)    
+```
+
+
+
+```{r}
+diamonds_trim %>%
+  ggplot(aes(x = carat, y = price)) +
+  geom_point() 
+```
+
+
+5.Shortly we may try a regression fit using one or more of the categorical predictors cut, clarity and color, so let’s investigate these predictors:
+
+  i.Investigate the factor levels of these predictors. How many dummy variables do you expect for each of them?
+
+  ii.Use the dummy_cols() function in the fastDummies package to generate dummies for these predictors and check the number of dummies in each case.
+
+
+```{r}
+library(fastDummies)
+```
+
+```{r}
+?dummy_cols
+```
+
+
+
+
+```{r}
+diamonds_trim %>%
+  distinct(cut)
+```
+
+```{r}
+diamonds_trim %>%
+  distinct(clarity)
+```
+
+```{r}
+diamonds_trim %>%
+  distinct(color)
+```
+
+
+```{r}
+diamonds_dummy_cut <- diamonds_trim %>%
+  dummy_cols(select_columns = "cut", remove_first_dummy = TRUE, 
+                          remove_selected_columns = TRUE) 
+
+diamonds_dummy_cut
+  
+```
+
+```{r}
+diamonds_dummy_clarity <- diamonds_trim %>%
+  dummy_cols(select_columns = "clarity", remove_first_dummy = TRUE, 
+                          remove_selected_columns = TRUE) 
+
+diamonds_dummy_clarity
+```
+
+```{r}
+diamonds_dummy_color <- diamonds_trim %>%
+  dummy_cols(select_columns = "color", remove_first_dummy = TRUE, 
+                          remove_selected_columns = TRUE) 
+
+diamonds_dummy_color
+```
+
+
+
+
+6. Going forward we’ll let R handle dummy variable creation for categorical predictors in regression fitting (remember lm() will generate the correct numbers of dummy levels automatically, absorbing one of the levels into the intercept as a reference level)
+  i. First, we’ll start with simple linear regression. Regress price on carat and check the regression diagnostics.
+
+  ii. Run a regression with one or both of the predictor and response variables log() transformed and recheck the diagnostics. Do you see any improvement?
+
+  iii. Let’s use log() transformations of both predictor and response. Next, experiment with adding a single categorical predictor into the model. Which categorical predictor is best? [Hint - investigate r2 values]
+
+  iv. Interpret the fitted coefficients for the levels of your chosen categorical predictor. Which level is the reference level? Which level shows the greatest difference in price from the reference level? [Hints - remember we are regressing the log(price) here, and think about what the presence of the log(carat) predictor implies. We’re not expecting a mathematical explanation]
+
+```{r}
+carat_model <- lm(price ~ carat, data = diamonds_trim)
+
+carat_model
+```
+
+```{r}
+summary(carat_model)
+```
+
+```{r}
+log_carat_model <- lm(log(price) ~ log(carat), data = diamonds_trim)
+
+log_carat_model
+```
+
+```{r}
+summary(log_carat_model)
+```
+
+
+```{r}
+cut_model <- lm(log(price) ~ log(carat) + cut, data = diamonds_trim)
+cut_model
+```
+
+```{r}
+summary(cut_model)
+```
+
+```{r}
+clarity_model <- lm(log(price) ~ log(carat) + clarity, data = diamonds_trim)
+summary(clarity_model)
+```
+
+```{r}
+colour_model <- lm(log(price) ~ log(carat) + color, data = diamonds_trim)
+summary(colour_model)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

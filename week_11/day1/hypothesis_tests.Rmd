@@ -230,7 +230,7 @@ p_value
 ```
 
 
-fail to reject the null hypothesis.
+reject the null hypothesis.
 
 I know something went wrong in this problem.  I tried a few different ways to change the NAs, but I just couldn't get it to work.  Went ahead with the problem anyway, just to get the practice of working through it.
 
